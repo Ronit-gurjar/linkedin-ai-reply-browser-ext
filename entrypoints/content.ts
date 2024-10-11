@@ -1,4 +1,7 @@
+import React from 'react';
+import { createRoot } from 'react-dom/client';
 import { defineContentScript } from 'wxt/sandbox';
+import App from './popup/App';
 
 const svgIcon = `
 <svg width="16" height="14" viewBox="0 0 16 14" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -29,11 +32,12 @@ function createIcon() {
   return icon;
 }
 
+//check for input type
 function isMessageInputElement(element: Element): boolean {
-  // Add more specific checks here if needed
   return element.closest('.msg-form__contenteditable') !== null;
 }
 
+// injecting icon into the message textfield
 function injectIconIntoInput(input: HTMLElement) {
   if (!isMessageInputElement(input)) {
     console.log('Not a message input element, skipping icon injection');
@@ -52,8 +56,9 @@ function injectIconIntoInput(input: HTMLElement) {
     wrapper.appendChild(icon);
     console.log('Icon injected successfully');
 
+    // Modal control
     icon.addEventListener('click', () => {
-      console.log('Icon clicked! Show modal here.');
+      console.log('Icon clicked! Sending message to background script to show modal.');
       chrome.runtime.sendMessage({ action: 'showModal' });
     });
 
@@ -104,6 +109,23 @@ function isMessagingPage(): boolean {
   return window.location.pathname.startsWith('/messaging/');
 }
 
+// Listener to receive messages from the background script
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === 'showModal') {
+    console.log('Received message to show modal');
+    sendResponse({ status: 'Modal shown' });
+  }
+});
+
+function renderApp() {
+  const root = document.createElement('div');
+  root.id = 'linkedin-assistant-root';
+  document.body.appendChild(root);
+
+  const reactRoot = createRoot(root);
+  reactRoot.render(React.createElement(App));
+}
+
 export default defineContentScript({
   matches: ['*://www.linkedin.com/*'],
   main() {
@@ -114,6 +136,7 @@ export default defineContentScript({
 
     console.log('LinkedIn Assistant activated on messages page');
     observeDOM();
+    renderApp();
     
     // Immediate check for existing input elements
     const existingInputs = [

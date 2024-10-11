@@ -1,35 +1,36 @@
-import { useState } from 'react';
-import reactLogo from '@/assets/react.svg';
-import wxtLogo from '/wxt.svg';
-import './App.css';
+import React, { useState, useEffect, useCallback } from 'react';
+import Modal from '@/components/Modal';
 
-function App() {
-  const [count, setCount] = useState(0);
+const App: React.FC = () => {
+  const [isModalOpen, setModalOpen] = useState(false);
+
+  const handleCloseModal = useCallback(() => {
+    console.log('Closing modal');
+    setModalOpen(false);
+  }, []);
+
+  useEffect(() => {
+    const handleMessage = (message: any) => {
+      console.log('Received message in App component:', message);
+      if (message.action === 'openModal') {
+        console.log('Opening modal');
+        setModalOpen(true);  // Open the modal when the message is received
+      }
+    };
+
+    chrome.runtime.onMessage.addListener(handleMessage);
+  
+    // Clean up the listener
+    return () => {
+      chrome.runtime.onMessage.removeListener(handleMessage);
+    };
+  }, []);
 
   return (
-    <>
-      <div>
-        <a href="https://wxt.dev" target="_blank">
-          <img src={wxtLogo} className="logo" alt="WXT logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>WXT + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the WXT and React logos to learn more
-      </p>
-    </>
+    <div>
+      <Modal isOpen={isModalOpen} onClose={handleCloseModal} />
+    </div>
   );
-}
+};
 
 export default App;
