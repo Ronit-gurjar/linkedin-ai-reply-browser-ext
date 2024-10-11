@@ -1,5 +1,3 @@
-// entrypoints/content.ts
-
 import { defineContentScript } from 'wxt/sandbox';
 
 const svgIcon = `
@@ -15,7 +13,7 @@ function createIcon() {
     width: 28px;
     height: 28px;
     display: none;
-    box-shadow: 0px 6px 4px -1px hsba(0, 0%, 0%, 0.1);
+    box-shadow: 0px 4px 6px -1px rgba(0, 0, 0, 0.1);
     justify-content: center;
     align-items: center;
     position: absolute;
@@ -31,7 +29,17 @@ function createIcon() {
   return icon;
 }
 
+function isMessageInputElement(element: Element): boolean {
+  // Add more specific checks here if needed
+  return element.closest('.msg-form__contenteditable') !== null;
+}
+
 function injectIconIntoInput(input: HTMLElement) {
+  if (!isMessageInputElement(input)) {
+    console.log('Not a message input element, skipping icon injection');
+    return;
+  }
+
   console.log('Attempting to inject icon into input', input);
   if (input.parentNode && !input.parentNode.querySelector('.extension-icon')) {
     const wrapper = document.createElement('div');
@@ -54,7 +62,13 @@ function injectIconIntoInput(input: HTMLElement) {
     });
 
     input.addEventListener('blur', () => {
-      icon.style.display = 'none';
+      setTimeout(() => {
+        if (input instanceof HTMLTextAreaElement && !input.value) {
+          icon.style.display = 'none';
+        } else if (input instanceof HTMLElement && input.getAttribute('contenteditable') === 'true' && !input.textContent?.trim()) {
+          icon.style.display = 'none';
+        }
+      }, 100);
     });
   } else {
     console.log('Icon already exists or input has no parent');
@@ -69,9 +83,11 @@ function observeDOM() {
         mutation.addedNodes.forEach((node) => {
           if (node.nodeType === Node.ELEMENT_NODE) {
             const element = node as Element;
-            const textareas = element.querySelectorAll('textarea');
-            textareas.forEach((textarea) => injectIconIntoInput(textarea as HTMLElement));
-            console.log(`Found ${textareas.length} input elements`);
+            const inputs = [
+              ...Array.from(element.querySelectorAll('textarea')),
+              ...Array.from(element.querySelectorAll('[contenteditable="true"]'))
+            ];
+            inputs.forEach((input) => injectIconIntoInput(input as HTMLElement));
           }
         });
       }
@@ -84,14 +100,26 @@ function observeDOM() {
   });
 }
 
+function isMessagingPage(): boolean {
+  return window.location.pathname.startsWith('/messaging/');
+}
+
 export default defineContentScript({
-  matches: ['*://www.linkedin.com/messaging/thread/*'],
+  matches: ['*://www.linkedin.com/*'],
   main() {
-    console.log('LinkedIn Assistant activated');
+    if (!isMessagingPage()) {
+      console.log('Not on messaging page, extension will not activate');
+      return;
+    }
+
+    console.log('LinkedIn Assistant activated on messages page');
     observeDOM();
     
     // Immediate check for existing input elements
-    const existingTextareas = document.querySelectorAll('textarea');
-    existingTextareas.forEach((textarea) => injectIconIntoInput(textarea as HTMLElement));
+    const existingInputs = [
+      ...Array.from(document.querySelectorAll('textarea')),
+      ...Array.from(document.querySelectorAll('[contenteditable="true"]'))
+    ];
+    existingInputs.forEach((input) => injectIconIntoInput(input as HTMLElement));
   },
 });
