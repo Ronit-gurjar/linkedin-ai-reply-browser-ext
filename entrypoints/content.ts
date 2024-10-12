@@ -9,6 +9,7 @@ const svgIcon = `
 </svg>
 `;
 
+// create icon and 
 function createIcon() {
   const icon = document.createElement('div');
   icon.innerHTML = svgIcon;
@@ -58,7 +59,7 @@ function injectIconIntoInput(input: HTMLElement) {
 
     // Modal control
     icon.addEventListener('click', () => {
-      console.log('Icon clicked! Sending message to background script to show modal.');
+      // console.log('Icon clicked! Sending message to background script to show modal.');
       chrome.runtime.sendMessage({ action: 'showModal' });
     });
 
@@ -80,6 +81,7 @@ function injectIconIntoInput(input: HTMLElement) {
   }
 }
 
+// observe DOM to look for text fields for inject icon mutation
 function observeDOM() {
   console.log('Starting DOM observation');
   const observer = new MutationObserver((mutations) => {
@@ -105,6 +107,7 @@ function observeDOM() {
   });
 }
 
+// check for messaging route. the extension should work only on messaging/thread route textareas
 function isMessagingPage(): boolean {
   return window.location.pathname.startsWith('/messaging/');
 }
@@ -123,13 +126,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
+// injecting response from AI ext into linnkedIn textbox
 function insertTextIntoLinkedInInput(text: string) {
   const input = document.querySelector('.msg-form__contenteditable') as HTMLElement;
   if (input) {
     if (input instanceof HTMLTextAreaElement) {
-      input.value += text;
+      const currentContent = input.innerHTML;
+      input.innerHTML = currentContent + text;
     } else if (input.getAttribute('contenteditable') === 'true') {
-      input.innerHTML += text;
+      const currentContent = input.innerHTML;
+      input.innerHTML = currentContent + text;
     }
     // Trigger input event to notify LinkedIn that the content has changed
     const event = new Event('input', { bubbles: true });
@@ -137,6 +143,7 @@ function insertTextIntoLinkedInInput(text: string) {
   }
 }
 
+// mount app when called 
 function renderApp() {
   const root = document.createElement('div');
   root.id = 'linkedin-assistant-root';
@@ -150,7 +157,7 @@ export default defineContentScript({
   matches: ['*://www.linkedin.com/*'],
   main() {
     if (!isMessagingPage()) {
-      console.log('Not on messaging page, extension will not activate');
+      // console.log('Not on messaging page, extension will not activate');
       return;
     }
 
