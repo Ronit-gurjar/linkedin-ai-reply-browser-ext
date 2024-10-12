@@ -2,8 +2,9 @@ export default defineBackground(() => {
   console.log('Hello background!', { id: browser.runtime.id });
 
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    console.log('Received message in background:', message);
     if (message.action === 'showModal') {
-      // Send message to the React app in the content script
+      console.log('Sending openModal message to content script');
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         if (tabs[0].id) {
           chrome.tabs.sendMessage(tabs[0].id, { action: 'openModal' });
@@ -11,7 +12,7 @@ export default defineBackground(() => {
       });
       sendResponse({ status: 'Message sent to content script' });
     } else if (message.action === 'insertText') {
-      // Forward the insertText message to the content script
+      console.log('Forwarding insertText message to content script');
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         if (tabs[0].id) {
           chrome.tabs.sendMessage(tabs[0].id, { 
@@ -23,6 +24,4 @@ export default defineBackground(() => {
       sendResponse({ status: 'Text insertion message sent to content script' });
     }
   });
-  
-  
 });
