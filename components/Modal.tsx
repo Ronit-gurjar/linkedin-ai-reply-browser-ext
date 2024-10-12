@@ -58,8 +58,14 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose }) => {
   };
 
   const handleInsert = () => {
-    // Implement the logic to insert the generated text
-    console.log('Inserting text...');
+    const lastBotMessage = messages.filter(m => !m.isUser).pop();
+    if (lastBotMessage) {
+      chrome.runtime.sendMessage({ 
+        action: 'insertText', 
+        text: lastBotMessage.text 
+      });
+    }
+    onClose();
   };
 
   const handleRegenerate = () => {

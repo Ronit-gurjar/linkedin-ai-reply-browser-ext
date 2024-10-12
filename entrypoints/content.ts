@@ -114,8 +114,28 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'showModal') {
     console.log('Received message to show modal');
     sendResponse({ status: 'Modal shown' });
+  } else if (message.action === 'openModal') {
+    // Trigger modal opening in React app
+    const event = new CustomEvent('openModal');
+    window.dispatchEvent(event);
+  } else if (message.action === 'insertText') {
+    insertTextIntoLinkedInInput(message.text);
   }
 });
+
+function insertTextIntoLinkedInInput(text: string) {
+  const input = document.querySelector('.msg-form__contenteditable') as HTMLElement;
+  if (input) {
+    if (input instanceof HTMLTextAreaElement) {
+      input.value += text;
+    } else if (input.getAttribute('contenteditable') === 'true') {
+      input.innerHTML += text;
+    }
+    // Trigger input event to notify LinkedIn that the content has changed
+    const event = new Event('input', { bubbles: true });
+    input.dispatchEvent(event);
+  }
+}
 
 function renderApp() {
   const root = document.createElement('div');
