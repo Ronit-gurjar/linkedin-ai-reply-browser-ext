@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import Modal from '@/components/Modal';
+import Modal from '../../components/Modal';
 
 const App: React.FC = () => {
   const [isModalOpen, setModalOpen] = useState(false);
@@ -10,25 +10,22 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const handleMessage = (message: any) => {
-      console.log('Received message in App component:', message);
-      if (message.action === 'openModal') {
-        console.log('Opening modal');
-        setModalOpen(true);  // Open the modal when the message is received
-      }
+    const handleOpenModal = () => {
+      console.log('openModal event received in App component');
+      setModalOpen(true);
     };
 
-    chrome.runtime.onMessage.addListener(handleMessage);
-  
-    // Clean up the listener
+    window.addEventListener('openModal', handleOpenModal);
+
     return () => {
-      chrome.runtime.onMessage.removeListener(handleMessage);
+      window.removeEventListener('openModal', handleOpenModal);
     };
   }, []);
 
   return (
     <div>
       <Modal isOpen={isModalOpen} onClose={handleCloseModal} />
+      <p className='link'>Made by <a href="https://github.com/Ronit-gurjar">Ronit</a></p>
     </div>
   );
 };
