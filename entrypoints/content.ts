@@ -112,20 +112,6 @@ function isMessagingPage(): boolean {
   return window.location.pathname.startsWith('/messaging/');
 }
 
-// Listener to receive messages from the background script
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.action === 'showModal') {
-    console.log('Received message to show modal');
-    sendResponse({ status: 'Modal shown' });
-  } else if (message.action === 'openModal') {
-    // Trigger modal opening in React app
-    const event = new CustomEvent('openModal');
-    window.dispatchEvent(event);
-  } else if (message.action === 'insertText') {
-    insertTextIntoLinkedInInput(message.text);
-  }
-});
-
 // injecting response from AI ext into linnkedIn textbox
 function insertTextIntoLinkedInInput(text: string) {
   const input = document.querySelector('.msg-form__contenteditable') as HTMLElement;
@@ -171,5 +157,19 @@ export default defineContentScript({
       ...Array.from(document.querySelectorAll('[contenteditable="true"]'))
     ];
     existingInputs.forEach((input) => injectIconIntoInput(input as HTMLElement));
+
+    // Listener to receive messages from the background script
+    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+      if (message.action === 'showModal') {
+        console.log('Received message to show modal');
+        sendResponse({ status: 'Modal shown' });
+      } else if (message.action === 'openModal') {
+        // Trigger modal opening in React app
+        const event = new CustomEvent('openModal');
+        window.dispatchEvent(event);
+      } else if (message.action === 'insertText') {
+        insertTextIntoLinkedInInput(message.text);
+      }
+    });
   },
 });
