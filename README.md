@@ -56,7 +56,7 @@ Follow these steps to set up the extension for local development:
 
 1. Navigate to LinkedIn and open a messaging conversation.
 
-2. Look for the extension icon (a blue pencil) in the message input field.
+2. Look for the extension icon (a blue magic wand) in the message input field.
 
 3. Click the icon to open the AI assistant modal.
    > If the icon doesn't work, open inspect (f12) and than click on the icon. see `issue #1` 
