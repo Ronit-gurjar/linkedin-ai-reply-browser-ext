@@ -2,6 +2,7 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { defineContentScript } from 'wxt/sandbox';
 import App from './popup/App';
+import "~/assets/tailwind.css";
 
 const svgIcon = `
 <svg width="16" height="14" viewBox="0 0 16 14" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -13,23 +14,24 @@ const svgIcon = `
 function createIcon() {
   const icon = document.createElement('div');
   icon.innerHTML = svgIcon;
-  icon.style.cssText = `
-    width: 28px;
-    height: 28px;
-    display: none;
-    box-shadow: 0px 4px 6px -1px rgba(0, 0, 0, 0.1);
-    justify-content: center;
-    align-items: center;
-    position: absolute;
-    right: 8px;
-    top: 80%;
-    transform: translateY(-50%);
-    cursor: pointer;
-    z-index: 1000;
-    color: #0a66c2;
-    background-color: #ffffff;
-    border-radius: 100%;
-  `;
+  icon.classList.add(
+    'w-7',
+    'h-7',
+    'hidden',
+    'shadow-md',
+    'flex',
+    'justify-center',
+    'items-center',
+    'absolute',
+    'right-2',
+    'top-2/3',
+    'translate-y-1/2',
+    'cursor-pointer',
+    'z-50',
+    'text-blue-600',
+    'bg-white',      
+    'rounded-full'
+  );
   return icon;
 }
 
