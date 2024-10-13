@@ -11,15 +11,11 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const handleOpenModal = () => {
-      console.log('openModal event received in App component');
+      console.log('openModal event received');
       setModalOpen(true);
     };
-
     window.addEventListener('openModal', handleOpenModal);
-
-    return () => {
-      window.removeEventListener('openModal', handleOpenModal);
-    };
+    return () => window.removeEventListener('openModal', handleOpenModal);
   }, []);
 
   return (
