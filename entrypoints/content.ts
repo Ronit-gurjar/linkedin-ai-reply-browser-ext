@@ -2,7 +2,6 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { defineContentScript } from 'wxt/sandbox';
 import App from './popup/App';
-import "~/assets/tailwind.css";
 
 const svgIcon = `
 <svg width="16" height="14" viewBox="0 0 16 14" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -14,24 +13,23 @@ const svgIcon = `
 function createIcon() {
   const icon = document.createElement('div');
   icon.innerHTML = svgIcon;
-  icon.classList.add(
-    'w-7',
-    'h-7',
-    'hidden',
-    'shadow-md',
-    'flex',
-    'justify-center',
-    'items-center',
-    'absolute',
-    'right-2',
-    'top-2/3',
-    'translate-y-1/2',
-    'cursor-pointer',
-    'z-50',
-    'text-blue-600',
-    'bg-white',      
-    'rounded-full'
-  );
+  icon.style.cssText = `
+    width: 28px;
+    height: 28px;
+    display: none;
+    box-shadow: 0px 4px 6px -1px rgba(0, 0, 0, 0.1);
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    right: 8px;
+    top: 80%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    z-index: 1000;
+    color: #0a66c2;
+    background-color: #ffffff;
+    border-radius: 100%;
+  `;
   return icon;
 }
 
@@ -116,18 +114,46 @@ function isMessagingPage(): boolean {
 
 // injecting response from AI ext into linnkedIn textbox
 function insertTextIntoLinkedInInput(text: string) {
-  const input = document.querySelector('.msg-form__contenteditable') as HTMLElement;
-  if (input) {
-    if (input instanceof HTMLTextAreaElement) {
-      const currentContent = input.innerHTML;
-      input.innerHTML = currentContent + text;
-    } else if (input.getAttribute('contenteditable') === 'true') {
-      const currentContent = input.innerHTML;
-      input.innerHTML = currentContent + text;
+  const contentEditableDiv = document.querySelector('.msg-form__contenteditable') as HTMLElement;
+  if (contentEditableDiv && contentEditableDiv.getAttribute('contenteditable') === 'true') {
+    let pElement = contentEditableDiv.querySelector('p');
+    
+    // If there's no <p> element, create one
+    if (!pElement) {
+      pElement = document.createElement('p');
+      contentEditableDiv.appendChild(pElement);
     }
+
+    // Check for and remove <br> if it's the only child
+    if (pElement.childNodes.length === 1 && pElement.firstChild?.nodeName === 'BR') {
+      pElement.removeChild(pElement.firstChild);
+    }
+
+    const selection = window.getSelection();
+    const range = selection?.getRangeAt(0);
+
+    if (range && pElement.contains(range.commonAncestorContainer)) {
+      // If there's a valid selection within the <p> element
+      range.deleteContents();
+      const textNode = document.createTextNode(text);
+      range.insertNode(textNode);
+      range.setStartAfter(textNode);
+      range.setEndAfter(textNode);
+      selection?.removeAllRanges();
+      selection?.addRange(range);
+    } else {
+      pElement.appendChild(document.createTextNode(text));
+    }
+
+    // Move cursor to the end of the inserted text
+    const newRange = document.createRange();
+    newRange.selectNodeContents(pElement);
+    newRange.collapse(false);
+    selection?.removeAllRanges();
+    selection?.addRange(newRange);
+
     // Trigger input event to notify LinkedIn that the content has changed
-    const event = new Event('input', { bubbles: true });
-    input.dispatchEvent(event);
+    contentEditableDiv.dispatchEvent(new Event('input', { bubbles: true }));
   }
 }
 
