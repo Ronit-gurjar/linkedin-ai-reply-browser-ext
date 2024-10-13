@@ -25,7 +25,6 @@ const App: React.FC = () => {
   return (
     <div>
       <Modal isOpen={isModalOpen} onClose={handleCloseModal} />
-      <p className='link'>Made by <a href="https://github.com/Ronit-gurjar">Ronit</a></p>
     </div>
   );
 };
